@@ -139,7 +139,7 @@ Instr;
 
 typedef struct _InstrStream                     // An instruction stream
 {
-	Instr * pInstrs;							// The instructions themselves
+	vector<Instr>  Instrs;							// The instructions themselves
 	int iSize;                                  // The number of instructions in the
 	// stream
 	int iCurrInstr;                             // The instruction pointer
