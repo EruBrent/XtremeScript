@@ -87,12 +87,17 @@
 
 typedef struct _Value							// A runtime value
 {
+	_Value ()
+	{ 
+		memset ( this, 0, sizeof ( *this ) );
+	}
+
 	int iType;                                  // Type
 	union                                       // The value
 	{
 		int iIntLiteral;                        // Integer literal
 		float fFloatLiteral;                    // Float literal
-		char * pstrStringLiteral;				// String literal
+		char* pstrStringLiteral;				// String literal
 		int iStackIndex;                        // Stack Index
 		int iInstrIndex;                        // Instruction index
 		int iFuncIndex;                         // Function index
@@ -120,6 +125,7 @@ RuntimeStack;
 
 typedef struct _Func							// A function
 {
+	_Func (){ memset ( this, 0, sizeof ( *this )); }
 	int iEntryPoint;							// The entry point
 	int iParamCount;							// The parameter count
 	int iLocalDataSize;							// Total size of all local data
@@ -133,7 +139,7 @@ typedef struct _Instr                           // An instruction
 {
 	int iOpcode;                                // The opcode
 	int iOpCount;                               // The number of operands
-	Value * pOpList;                            // The operand list
+	vector<Value>  pOpList;                            // The operand list
 }
 Instr;
 
@@ -178,7 +184,7 @@ typedef struct _Script							// Encapsulates a full script
 
 	InstrStream InstrStream;                    // The instruction stream
 	RuntimeStack Stack;                         // The runtime stack
-	Func * pFuncTable;                          // The function table
+	vector<Func>  vetFuncTable;                          // The function table
 	HostAPICallTable HostAPICallTable;			// The host API call table
 }
 Script;
