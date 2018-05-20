@@ -189,4 +189,17 @@ typedef struct _Script							// Encapsulates a full script
 }
 Script;
 
+typedef void ( *HostAPIFuncPntr ) (int iThreadIndex);  // Host API function pointer
+
+typedef struct _HostAPIFunc                     // Host API function
+{
+	int iIsActive;                              // Is this slot in use?
+
+	int iThreadIndex;                           // The thread to which this function
+	// is visible
+	char * pstrName;                            // The function name
+	HostAPIFuncPntr fnFunc;                     // Pointer to the function definition
+}
+HostAPIFunc;
+
 #endif // !_C
