@@ -49,6 +49,13 @@ private:
 	// p541
 	int GetFuncIndexByName ( int iThreadIndex, char * pstrName );
 
+	
+	template<typename T>
+	T GetParamAs ( int iThreadIndex, int iParamIndex );
+
+	template<typename T>
+	T CoerceValueTo ( Value Val );
+
 	//p541
 	void XS_PassIntParam ( int iThreadIndex, int iInt );
 	void XS_PassFloatParam ( int iThreadIndex, float fFloat );
@@ -64,6 +71,15 @@ private:
 
 
 private:
-	Script	m_Script;
+	Script	m_Script[MAX_THREAD_COUNT];
+	int		g_iCurrThread;
 };
+
+template<typename T>
+T CXvmProto::GetParamAs ( int iThreadIndex, int iParamIndex )
+{
+	int iTopIndex = m_Scripts[g_iCurrThread].Stack.iTopIndex;
+	Value Param = m_Scripts[iThreadIndex].Stack.pElmnts[iTopIndex - (iParamIndex + 1)];
+	return CoerceValueTo ( Param );
+}
 

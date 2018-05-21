@@ -81,6 +81,7 @@
 // string coercion (including the null
 // terminator)
 
+#define MAX_THREAD_COUNT		    1024   
 // ---- Data Structures -----------------------------------------------------------------------
 
 // ---- Runtime Value ---------------------------------------------------------------------
