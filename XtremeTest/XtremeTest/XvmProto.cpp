@@ -4,6 +4,8 @@
 
 CXvmProto::CXvmProto()
 {
+	g_iCurrThreadMode = THREAD_MODE_MULTI;
+	g_iCurrThread = 0;
 }
 
 
@@ -13,11 +15,16 @@ CXvmProto::~CXvmProto()
 
 void CXvmProto::Test(vector<string>& argv)
 {
+	Value* val = ( Value* )malloc ( sizeof ( Value ) );
+	memset ( val, 0, sizeof ( Value ) );
+	val->iType = 1;
+	val->iIntLiteral = 2;
+	val->fFloatLiteral = 3;
+	Value val1 = val[0];
 	if (argv.empty()) return;
 
 	printf("XVM Prototype\n");
 	memset(&m_Script, 0, sizeof(Script));
-	
 	int ret = LoadScript (argv.at(0));
 	
 }
@@ -39,7 +46,6 @@ int CXvmProto::LoadScript ( string& pstrFilename )
 	fread ( &iMinorVersion, 1, 1, pScriptFile );
 
 	// Validate the version, since this prototype only supports version 0.4 scripts
-	Script g_Script;
 
 	if ( iMajorVersion != 0 || iMinorVersion != 4 )
 		return LOAD_ERROR_UNSUPPORTED_VERS;
@@ -143,9 +149,9 @@ int CXvmProto::LoadScript ( string& pstrFilename )
 			vetStr.push_back ( str );
 		}
 
-		for ( int i = 0; i < m_Script.InstrStream.iSize;i++ )
+		for ( int i = 0; i < m_Script.InstrStream.iSize; i++ )
 		{
-			for ( int j = 0; j < m_Script.InstrStream.Instrs[i].iOpCount;j++ )
+			for ( int j = 0; j < m_Script.InstrStream.Instrs[i].iOpCount; j++ )
 			{
 				auto& vetOplist = m_Script.InstrStream.Instrs[i].pOpList;
 				if ( vetOplist.at ( j ).iType == OP_TYPE_STRING )
@@ -198,4 +204,102 @@ int CXvmProto::LoadScript ( string& pstrFilename )
 	printf ( "\n" );
 
 	return LOAD_OK;
+}
+
+void CXvmProto::RunScript ()
+{
+	Script& g_Script = m_Script;
+	int iCurrInstr = m_Script.InstrStream.iCurrInstr;
+
+	// Get the current opcode
+
+	int iOpcode = g_Script.InstrStream.Instrs[iCurrInstr].iOpcode;
+
+	switch ( iOpcode )
+	{
+		case INSTR_MOV:
+
+		// Arithmetic Operations
+
+		case INSTR_ADD:
+		case INSTR_SUB:
+		case INSTR_MUL:
+		case INSTR_DIV:
+		case INSTR_MOD:
+		case INSTR_EXP:
+
+		// Bitwise Operations
+
+		case INSTR_AND:
+		case INSTR_OR:
+		case INSTR_XOR:
+		case INSTR_SHL:
+		case INSTR_SHR:
+		{
+			Value Dest = ResolveOpValue ( 0 );
+
+			// Get a local copy of the source operand (operand index 1)
+
+			Value Source = ResolveOpValue ( 1 );
+
+			switch ( iOpcode )
+			{
+				case INSTR_MOV:
+
+				// Skip cases where the two operands are the same
+
+				if ( ResolveOpPntr ( 0 ) == ResolveOpPntr ( 1 ) )
+					break;
+
+				// Copy the source operand into the destination
+
+				CopyValue ( &Dest, Source );
+
+				break;
+			}
+			break;
+		}
+	}
+}
+
+Value CXvmProto::ResolveOpValue ( int iOpIndex )
+{
+	int iCurrInstr = m_Script.InstrStream.iCurrInstr;
+
+	// Get the operand type type
+
+	Value OpValue = m_Script.InstrStream.Instrs[iCurrInstr].pOpList[iOpIndex];
+	switch ( OpValue.iType )
+	{
+		// It's a stack index so resolve it
+
+		case OP_TYPE_ABS_STACK_INDEX:
+		case OP_TYPE_REL_STACK_INDEX:
+		{
+			// Resolve the index and use it to return the corresponding stack element
+			if ( OpValue.iType == OP_TYPE_ABS_STACK_INDEX )
+				return GetStackValue ( OpValue.iStackIndex );
+			else
+				return GetStackValue (OpValue.iStackIndex + GetStackValue ( OpValue.iOffsetIndex ).iIntLiteral);
+
+		}
+
+		// It's in _RetVal
+
+		case OP_TYPE_REG:
+		return m_Script._RetVal;
+
+		// Anything else can be returned as-is
+
+		default:
+		return OpValue;
+	}
+}
+
+
+Value CXvmProto::GetStackValue ( int iIndex )
+{
+	// Use ResolveStackIndex () to return the element at the specified index
+	auto f = [this]( int iIndex ){return iIndex < 0 ? iIndex += m_Script.Stack.iFrameIndex : iIndex; };
+	return m_Script.Stack.pElmnts[f(iIndex)] ;
 }

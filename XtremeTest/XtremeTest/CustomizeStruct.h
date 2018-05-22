@@ -85,6 +85,14 @@
 // ---- Data Structures -----------------------------------------------------------------------
 
 // ---- Runtime Value ---------------------------------------------------------------------
+// ---- Multithreading --------------------------------------------------------------------
+#define THREAD_MODE_MULTI           0           // Multithreaded execution
+#define THREAD_MODE_SINGLE          1           // Single-threaded execution
+
+#define THREAD_PRIORITY_DUR_LOW     20          // Low-priority thread timeslice
+#define THREAD_PRIORITY_DUR_MED     40          // Medium-priority thread timeslice
+#define THREAD_PRIORITY_DUR_HIGH    80          // High-priority thread timeslice
+
 
 typedef struct _Value							// A runtime value
 {
@@ -157,6 +165,7 @@ InstrStream;
 
 typedef struct _HostAPICallTable				// A host API call table
 {
+	_HostAPICallTable (){ memset ( this, 0, sizeof ( *this )); }
 	char ** ppstrCalls;							// Pointer to the call array
 	int iSize;									// The number of calls in the array
 }
@@ -167,6 +176,11 @@ HostAPICallTable;
 typedef struct _Script							// Encapsulates a full script
 {
 	// Header data
+	_Script ()
+	{
+		iGlobalDataSize = iIsMainFuncPresent = 0;
+		iMainFuncIndex = iIsPaused = iPauseEndTime = 0;
+	}
 
 	int iGlobalDataSize;						// The size of the script's global data
 	int iIsMainFuncPresent;                     // Is _Main () present?
@@ -194,6 +208,7 @@ typedef void ( *HostAPIFuncPntr ) (int iThreadIndex);  // Host API function poin
 
 typedef struct _HostAPIFunc                     // Host API function
 {
+	_HostAPIFunc (){ memset ( this, 0, sizeof ( *this ) ); }
 	int iIsActive;                              // Is this slot in use?
 
 	int iThreadIndex;                           // The thread to which this function
@@ -202,5 +217,6 @@ typedef struct _HostAPIFunc                     // Host API function
 	HostAPIFuncPntr fnFunc;                     // Pointer to the function definition
 }
 HostAPIFunc;
+
 
 #endif // !_C

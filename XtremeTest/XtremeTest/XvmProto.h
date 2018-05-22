@@ -44,35 +44,27 @@ public:
 
 private:
 	int		LoadScript ( string& pstrFilename );
-	// p539
-	void	CallFunc ( int iThreadIndex, int iIndex );
-	// p541
-	int GetFuncIndexByName ( int iThreadIndex, char * pstrName );
+	void	RunScript ();
+	Value	ResolveOpValue ( int iOpIndex );
+	Value	GetStackValue ( int iIndex );
 
-	
 	template<typename T>
 	T GetParamAs ( int iThreadIndex, int iParamIndex );
 
 	template<typename T>
 	T CoerceValueTo ( Value Val );
 
-	//p541
-	void XS_PassIntParam ( int iThreadIndex, int iInt );
-	void XS_PassFloatParam ( int iThreadIndex, float fFloat );
-	void XS_PassStringParam ( int iThreadIndex, char * pstrString );
-	// p547
-	void XS_CallScriptFunc ( int iThreadIndex, char * pstrName );
 
-	// p549
-	int XS_GetReturnValueAsInt ( int iThreadIndex );
-	float XS_GetReturnValueAsFloat ( int iThreadIndex );
-	char * XS_GetReturnValueAsString ( int iThreadIndex );
 
 
 
 private:
-	Script	m_Script[MAX_THREAD_COUNT];
-	int		g_iCurrThread;
+	Script	m_Script;
+	int g_iCurrThreadMode;                          // The current threading mode
+	int g_iCurrThread;								// The currently running thread
+	int g_iCurrThreadActiveTime;					// The time at which the current thread
+
+
 };
 
 template<typename T>
@@ -81,5 +73,11 @@ T CXvmProto::GetParamAs ( int iThreadIndex, int iParamIndex )
 	int iTopIndex = m_Scripts[g_iCurrThread].Stack.iTopIndex;
 	Value Param = m_Scripts[iThreadIndex].Stack.pElmnts[iTopIndex - (iParamIndex + 1)];
 	return CoerceValueTo ( Param );
+}
+
+template<typename T>
+T CXvmProto::CoerceValueTo ( Value Val )
+{
+
 }
 
